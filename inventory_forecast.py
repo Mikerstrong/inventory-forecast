@@ -272,6 +272,16 @@ class InventoryForecaster:
         if fig is None:
             return False
         
+        # Get latest data and add status for summary cards
+        latest_data = self.df.groupby('product_id').last().reset_index()
+        latest_data['status'], latest_data['color'] = zip(*latest_data.apply(
+            lambda row: self.get_inventory_status(
+                row['current_stock'], 
+                row['reorder_point'], 
+                row['max_stock']
+            ), axis=1
+        ))
+        
         # Generate HTML content
         html_content = f"""
 <!DOCTYPE html>
@@ -344,7 +354,6 @@ class InventoryForecaster:
 """
         
         # Add summary cards
-        latest_data = self.df.groupby('product_id').last().reset_index()
         status_counts = latest_data.groupby(['status']).size().to_dict()
         
         for status, count in status_counts.items():

@@ -1,23 +1,97 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Forecast Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .placeholder { text-align: center; color: #666; padding: 50px; }
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .summary-cards {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+        }
+        .card h3 { margin-top: 0; }
+        .status-critical { border-left: 5px solid #e74c3c; }
+        .status-low { border-left: 5px solid #f39c12; }
+        .status-good { border-left: 5px solid #27ae60; }
+        .status-high { border-left: 5px solid #3498db; }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Inventory Forecast Dashboard</h1>
-        <p>This file will be overwritten by the inventory_forecast.py script</p>
+        <h1>📊 Inventory Forecast Dashboard</h1>
+        <p>Real-time inventory management and demand forecasting</p>
+        <small>Generated on 2025-07-21 20:45:01</small>
     </div>
-    <div class="placeholder">
-        <h2>Dashboard content will be generated here</h2>
-        <p>Run inventory_forecast.py to generate the actual dashboard</p>
+    
+    <div class="summary-cards">
+
+        <div class="card status-good">
+            <h3>4</h3>
+            <p>Good Products</p>
+        </div>
+
+        <div class="card status-low">
+            <h3>1</h3>
+            <p>Low Products</p>
+        </div>
+
     </div>
+    
+    <div class="chart-container">
+        <div id="dashboard-chart"></div>
+    </div>
+    
+    <div class="footer">
+        <p>🔄 Dashboard updates automatically when inventory_forecast.py is run</p>
+        <p>📈 Powered by Prophet forecasting and Plotly visualizations</p>
+    </div>
+    
+    <script>
+var plotlyData = {"data":[{"delta":{"reference":80},"domain":{"x":[0.0,0.45],"y":[0.7777777777777778,1.0]},"gauge":{"axis":{"range":[null,100]},"bar":{"color":"darkblue"},"steps":[{"color":"lightgray","range":[0,50]},{"color":"gray","range":[50,80]}],"threshold":{"line":{"color":"red","width":4},"thickness":0.75,"value":90}},"mode":"gauge+number+delta","title":{"text":"Inventory Health %"},"value":80.0,"type":"indicator"},{"marker":{"color":["green","green","orange","green","green"]},"name":"Current Stock","text":["Good","Good","Low","Good","Good"],"textposition":"auto","x":["Widget A","Widget B","Widget C","Widget D","Widget E"],"y":{"dtype":"i2","bdata":"DAGhAGoATgDnAQ=="},"type":"bar","xaxis":"x","yaxis":"y"},{"line":{"color":"red","dash":"dash"},"marker":{"color":"red","size":8},"mode":"markers+lines","name":"Reorder Point","x":["Widget A","Widget B","Widget C","Widget D","Widget E"],"y":{"dtype":"i2","bdata":"ZAAyAEsAKADIAA=="},"type":"scatter","xaxis":"x","yaxis":"y"},{"line":{"width":2},"mode":"lines+markers","name":"Demand - P001","x":["2024-01-01T00:00:00.000000000","2024-01-02T00:00:00.000000000","2024-01-03T00:00:00.000000000","2024-01-04T00:00:00.000000000","2024-01-05T00:00:00.000000000","2024-01-06T00:00:00.000000000","2024-01-07T00:00:00.000000000","2024-01-08T00:00:00.000000000","2024-01-09T00:00:00.000000000","2024-01-10T00:00:00.000000000"],"y":{"dtype":"i1","bdata":"GRoYGxwZGhgbGQ=="},"type":"scatter","xaxis":"x2","yaxis":"y2"},{"line":{"width":2},"mode":"lines+markers","name":"Demand - P002","x":["2024-01-01T00:00:00.000000000","2024-01-02T00:00:00.000000000","2024-01-03T00:00:00.000000000","2024-01-04T00:00:00.000000000","2024-01-05T00:00:00.000000000","2024-01-06T00:00:00.000000000","2024-01-07T00:00:00.000000000","2024-01-08T00:00:00.000000000","2024-01-09T00:00:00.000000000","2024-01-10T00:00:00.000000000"],"y":{"dtype":"i1","bdata":"DxAODxEQDg8REA=="},"type":"scatter","xaxis":"x2","yaxis":"y2"},{"line":{"width":2},"mode":"lines+markers","name":"Demand - P003","x":["2024-01-01T00:00:00.000000000","2024-01-02T00:00:00.000000000","2024-01-03T00:00:00.000000000","2024-01-04T00:00:00.000000000","2024-01-05T00:00:00.000000000","2024-01-06T00:00:00.000000000","2024-01-07T00:00:00.000000000","2024-01-08T00:00:00.000000000","2024-01-09T00:00:00.000000000","2024-01-10T00:00:00.000000000"],"y":{"dtype":"i1","bdata":"CgsMCgkLCgwJCw=="},"type":"scatter","xaxis":"x2","yaxis":"y2"},{"marker":{"color":"blue","size":6},"mode":"markers","name":"Historical Demand","x":["2024-01-01T00:00:00.000000000","2024-01-02T00:00:00.000000000","2024-01-03T00:00:00.000000000","2024-01-04T00:00:00.000000000","2024-01-05T00:00:00.000000000","2024-01-06T00:00:00.000000000","2024-01-07T00:00:00.000000000","2024-01-08T00:00:00.000000000","2024-01-09T00:00:00.000000000","2024-01-10T00:00:00.000000000"],"y":{"dtype":"i1","bdata":"GRoYGxwZGhgbGQ=="},"type":"scatter","xaxis":"x3","yaxis":"y3"},{"line":{"color":"red","width":2},"mode":"lines","name":"Forecast","x":["2024-01-01T00:00:00.000000000","2024-01-02T00:00:00.000000000","2024-01-03T00:00:00.000000000","2024-01-04T00:00:00.000000000","2024-01-05T00:00:00.000000000","2024-01-06T00:00:00.000000000","2024-01-07T00:00:00.000000000","2024-01-08T00:00:00.000000000","2024-01-09T00:00:00.000000000","2024-01-10T00:00:00.000000000","2024-01-11T00:00:00.000000000","2024-01-12T00:00:00.000000000","2024-01-13T00:00:00.000000000","2024-01-14T00:00:00.000000000","2024-01-15T00:00:00.000000000","2024-01-16T00:00:00.000000000","2024-01-17T00:00:00.000000000","2024-01-18T00:00:00.000000000","2024-01-19T00:00:00.000000000","2024-01-20T00:00:00.000000000","2024-01-21T00:00:00.000000000","2024-01-22T00:00:00.000000000","2024-01-23T00:00:00.000000000","2024-01-24T00:00:00.000000000","2024-01-25T00:00:00.000000000","2024-01-26T00:00:00.000000000","2024-01-27T00:00:00.000000000","2024-01-28T00:00:00.000000000","2024-01-29T00:00:00.000000000","2024-01-30T00:00:00.000000000","2024-01-31T00:00:00.000000000","2024-02-01T00:00:00.000000000","2024-02-02T00:00:00.000000000","2024-02-03T00:00:00.000000000","2024-02-04T00:00:00.000000000","2024-02-05T00:00:00.000000000","2024-02-06T00:00:00.000000000","2024-02-07T00:00:00.000000000","2024-02-08T00:00:00.000000000","2024-02-09T00:00:00.000000000"],"y":{"dtype":"f8","bdata":"gKutlP\u002f\u002fOECWUZ2Z\u002f\u002f85QEUqVFL\u002f\u002fzdACKGzXP\u002f\u002fOkDk3QiS\u002f\u002f87QPQljFn\u002f\u002fzhAd3Azdf\u002f\u002fOUB16BxK\u002f\u002f83QGeyl0f\u002f\u002fzpAbpROAP\u002f\u002fOEDfSJl06IY7QJ4IeLYxeDtAoLWOw1ZOOUA8ZBzSstE6QCS0C3ZKUzpAcnyGc0pTPUCiWj0sSlM7QKASiKAz2j1AMctm4nzLPUBpfX3voaE7QLw2C\u002f79JD1A1H\u002f6oZWmPEBWSXWflaY\u002fQBImLFiVpj1AtXI7Zr8WQEC5yyoHZA9AQDFFbBvt9D1AR\u002f75KUl4P0AvRunN4Pk+QB0LsmXw\u002fEBA3fIahOD5P0B0zDL8ZEBBQNkxIp0JOUFAs4qtIxwkQECmY\u002fQqyuVAQKoJ7PyVpkBAInCp+5UmQkDU3wTYlSZBQNg1KpIKakJAupoZM69iQkA="},"type":"scatter","xaxis":"x3","yaxis":"y3"},{"fill":"tonexty","fillcolor":"rgba(255,0,0,0.1)","line":{"color":"rgba(255,255,255,0)"},"name":"Confidence Interval","showlegend":false,"x":["2024-01-01T00:00:00","2024-01-02T00:00:00","2024-01-03T00:00:00","2024-01-04T00:00:00","2024-01-05T00:00:00","2024-01-06T00:00:00","2024-01-07T00:00:00","2024-01-08T00:00:00","2024-01-09T00:00:00","2024-01-10T00:00:00","2024-01-11T00:00:00","2024-01-12T00:00:00","2024-01-13T00:00:00","2024-01-14T00:00:00","2024-01-15T00:00:00","2024-01-16T00:00:00","2024-01-17T00:00:00","2024-01-18T00:00:00","2024-01-19T00:00:00","2024-01-20T00:00:00","2024-01-21T00:00:00","2024-01-22T00:00:00","2024-01-23T00:00:00","2024-01-24T00:00:00","2024-01-25T00:00:00","2024-01-26T00:00:00","2024-01-27T00:00:00","2024-01-28T00:00:00","2024-01-29T00:00:00","2024-01-30T00:00:00","2024-01-31T00:00:00","2024-02-01T00:00:00","2024-02-02T00:00:00","2024-02-03T00:00:00","2024-02-04T00:00:00","2024-02-05T00:00:00","2024-02-06T00:00:00","2024-02-07T00:00:00","2024-02-08T00:00:00","2024-02-09T00:00:00","2024-02-09T00:00:00","2024-02-08T00:00:00","2024-02-07T00:00:00","2024-02-06T00:00:00","2024-02-05T00:00:00","2024-02-04T00:00:00","2024-02-03T00:00:00","2024-02-02T00:00:00","2024-02-01T00:00:00","2024-01-31T00:00:00","2024-01-30T00:00:00","2024-01-29T00:00:00","2024-01-28T00:00:00","2024-01-27T00:00:00","2024-01-26T00:00:00","2024-01-25T00:00:00","2024-01-24T00:00:00","2024-01-23T00:00:00","2024-01-22T00:00:00","2024-01-21T00:00:00","2024-01-20T00:00:00","2024-01-19T00:00:00","2024-01-18T00:00:00","2024-01-17T00:00:00","2024-01-16T00:00:00","2024-01-15T00:00:00","2024-01-14T00:00:00","2024-01-13T00:00:00","2024-01-12T00:00:00","2024-01-11T00:00:00","2024-01-10T00:00:00","2024-01-09T00:00:00","2024-01-08T00:00:00","2024-01-07T00:00:00","2024-01-06T00:00:00","2024-01-05T00:00:00","2024-01-04T00:00:00","2024-01-03T00:00:00","2024-01-02T00:00:00","2024-01-01T00:00:00"],"y":[24.999993603135195,25.999993897351416,23.99998964838919,26.99999026666269,27.99999344555464,24.99999007865632,25.9999917269322,23.999989158686525,26.999989008461583,24.999984759507907,28.217820960603607,29.731288290098007,29.704638923845355,33.7880816988896,36.129763665872694,42.53954191533464,44.66727264686457,51.351948845957864,56.32405967496077,59.01206481529564,65.11044432713283,69.96394780499874,77.79679011172115,81.0372725515328,89.02834918930353,94.54737770453376,98.84323555549562,106.82263605559406,112.25685202838679,122.54421439993969,127.02234289299965,135.69857150400543,143.4106957406115,147.77960259399237,157.03292118100322,165.72624156728386,177.58279205856317,181.67408368276517,191.5832181669425,198.72604366605086,-138.9399744568028,-129.22128821466697,-122.17230710534595,-112.24637400187561,-106.14135756375426,-97.36037724621609,-91.30520926046259,-80.81338109183666,-74.44557814554489,-67.75038573906174,-59.19969375288892,-56.13736277179293,-49.67627651907845,-43.931970101911695,-34.49613761165813,-29.729492694142788,-26.206415099211902,-18.138359930151275,-13.9680792351643,-8.756300148667886,-5.7817378254900955,2.0943703438515584,6.479423520646127,7.992875910275747,13.57027646705956,14.884426003647993,18.961498603960308,20.29864832700052,24.922913500139263,26.752751506511807,24.99998475950562,26.99998900845922,23.999989158684112,25.99999172692981,24.999990078653994,27.999993445552313,26.999990266660195,23.99998964838683,25.999993897348983,24.999993603132847],"type":"scatter","xaxis":"x3","yaxis":"y3"},{"labels":["Good","Low"],"marker":{"colors":["green","orange"]},"name":"Status Distribution","values":{"dtype":"i1","bdata":"BAE="},"type":"pie","domain":{"x":[0.55,1.0],"y":[0.0,0.22222222222222224]}}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.55,1.0]},"yaxis":{"anchor":"x","domain":[0.7777777777777778,1.0]},"xaxis2":{"anchor":"y2","domain":[0.0,1.0]},"yaxis2":{"anchor":"x2","domain":[0.3888888888888889,0.6111111111111112]},"xaxis3":{"anchor":"y3","domain":[0.0,0.45]},"yaxis3":{"anchor":"x3","domain":[0.0,0.22222222222222224]},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Current Inventory Status","x":0.225,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Stock Levels by Product","x":0.775,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Daily Demand Trends","x":0.5,"xanchor":"center","xref":"paper","y":0.6111111111111112,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Reorder Analysis","x":0.225,"xanchor":"center","xref":"paper","y":0.22222222222222224,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Inventory Forecast (Product A)","x":0.775,"xanchor":"center","xref":"paper","y":0.22222222222222224,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Inventory Management Dashboard","x":0.5},"font":{"size":12},"height":1200,"showlegend":true}};
+
+        Plotly.newPlot('dashboard-chart', plotlyData.data, plotlyData.layout, {responsive: true});
+    </script>
 </body>
 </html>
