@@ -292,7 +292,7 @@ class InventoryForecastSystem:
             
             # Save as HTML
             output_path = 'templates/dashboard.html'
-            fig.write_html(output_path, include_plotlyjs='cdn')
+            fig.write_html(output_path, include_plotlyjs='inline')
             
             print(f"✓ Dashboard generated successfully: {output_path}")
             
