@@ -1,0 +1,295 @@
+# **Prompt for Regenerating Inventory Management & Forecasting Streamlit Application**
+
+Create a complete Python Streamlit web application for inventory management and demand forecasting with the following detailed specifications:
+
+## **Project Overview**
+Build an interactive inventory management dashboard that provides real-time visualization, demand forecasting using Facebook Prophet, and comprehensive inventory analytics. The application should be professional, feature-rich, and production-ready.
+
+## **Technical Requirements**
+
+### **Dependencies & Imports**
+- `streamlit` (≥1.28.0) - Web application framework
+- `pandas` (≥1.5.0) - Data manipulation
+- `plotly.graph_objects` and `plotly.express` (≥5.0.0) - Interactive visualizations
+- `prophet` (≥1.1.0) - Time series forecasting
+- `numpy` (≥1.15.4) - Numerical computations
+- `matplotlib` (≥2.0.0) - Additional plotting support
+- `warnings`, `os`, `datetime`, `timedelta` - Built-in Python modules
+
+### **Application Configuration**
+```python
+st.set_page_config(
+    page_title="Inventory Forecast Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+```
+
+## **Data Structure & Format**
+
+### **CSV Data Schema**
+The application expects a CSV file at `data/sample_inventory.csv` with these columns:
+- `date` (YYYY-MM-DD format)
+- `product_id` (string: P001, P002, etc.)
+- `product_name` (string: Widget A, Widget B, etc.)
+- `current_stock` (integer: current inventory level)
+- `daily_demand` (integer: daily consumption)
+- `reorder_point` (integer: minimum stock threshold)
+- `max_stock` (integer: maximum inventory capacity)
+- `supplier_lead_time` (integer: days for restocking)
+
+### **Sample Data Pattern**
+Generate time series data spanning multiple months with 5 products (P001-P005) showing realistic inventory fluctuations, daily demand variations, and stock level changes over time.
+
+## **Core Classes & Architecture**
+
+### **InventoryForecaster Class**
+Create a main class with these methods:
+
+1. **`__init__(data_path='data/sample_inventory.csv')`**
+   - Initialize with data path
+   - Create empty forecasts dictionary
+   - Set df to None initially
+
+2. **`load_data()`**
+   - Load CSV using pandas
+   - Convert date column to datetime
+   - Return True/False for success
+   - Display Streamlit error on failure
+
+3. **`get_inventory_status(current_stock, reorder_point, max_stock)`**
+   - Return status and color tuples:
+     - Critical/red: stock ≤ reorder_point
+     - Low/orange: stock ≤ reorder_point × 1.5
+     - High/blue: stock ≥ max_stock × 0.9
+     - Good/green: everything else
+
+4. **`forecast_demand(product_id, periods=30)`**
+   - Use Facebook Prophet for forecasting
+   - Filter data for specific product
+   - Prepare data with 'ds' and 'y' columns
+   - Configure Prophet: no daily/yearly seasonality, weekly seasonality enabled
+   - Store results in forecasts dictionary
+   - Return forecast data or None on error
+
+5. **`get_latest_data()`**
+   - Group by product_id and get last record
+   - Add status and color columns using get_inventory_status
+   - Return processed dataframe
+
+## **Visualization Functions**
+
+### **1. Inventory Health Gauge**
+```python
+def create_inventory_health_gauge(latest_data):
+```
+- Calculate health percentage: (total - critical - low) / total × 100
+- Create Plotly gauge indicator
+- Reference line at 80%
+- Color steps: 0-50 (lightgray), 50-80 (gray)
+- Red threshold line at 90%
+- Height: 300px
+
+### **2. Stock Levels Bar Chart**
+```python
+def create_stock_levels_chart(latest_data):
+```
+- Bar chart showing current stock by product
+- Color bars by status (red/orange/green/blue)
+- Add status text on bars
+- Overlay red dashed line for reorder points
+- Include scatter plot markers for reorder points
+- Title: "Stock Levels by Product"
+- Height: 400px
+
+### **3. Demand Trends Chart**
+```python
+def create_demand_trends_chart(df, selected_products):
+```
+- Line chart with markers for selected products
+- Use color array: ['blue', 'green', 'red', 'purple', 'orange']
+- Show daily demand over time
+- Legend format: "Demand - {product_id}"
+- Title: "Daily Demand Trends"
+- Height: 400px
+
+### **4. Forecast Chart**
+```python
+def create_forecast_chart(forecaster, selected_product):
+```
+- Historical data as blue scatter plot
+- Forecast line in red
+- Confidence interval as filled area (rgba(255,0,0,0.1))
+- Historical data: blue markers, size 6
+- Forecast line: red, width 2
+- Title: "Demand Forecast - {product}"
+- Height: 400px
+
+### **5. Status Distribution Pie Chart**
+```python
+def create_status_distribution_chart(latest_data):
+```
+- Pie chart of status distribution
+- Colors: ['green', 'orange', 'red', 'blue']
+- Title: "Stock Status Distribution"
+- Height: 400px
+
+## **Streamlit Application Layout**
+
+### **Header Section**
+- Title: "📊 Inventory Management & Forecasting Dashboard"
+- Subtitle: "Real-time inventory management and demand forecasting powered by Prophet"
+
+### **Sidebar Configuration**
+- Header: "📋 Dashboard Controls"
+- Data Summary section with metrics:
+  - Total Records
+  - Unique Products  
+  - Date Range (formatted as YYYY-MM-DD to YYYY-MM-DD)
+- Product Selection section:
+  - Multiselect for trend analysis (default: first 3 products)
+  - Selectbox for forecasting (default: first product)
+  - Slider for forecast periods (7-90 days, default 30, step 7)
+
+### **Main Dashboard Layout**
+
+#### **Status Summary Cards (4 columns)**
+```python
+col1, col2, col3, col4 = st.columns(4)
+```
+- 🔴 Critical: Count + delta message
+- 🟠 Low Stock: Count + delta message  
+- 🟢 Good: Count + delta message
+- 🔵 High Stock: Count + delta message
+
+#### **Dashboard Overview (2 columns)**
+- Column 1: Inventory Health Gauge
+- Column 2: Status Distribution Pie Chart
+
+#### **Stock Levels Section**
+- Full-width stock levels bar chart
+- Title: "📦 Current Stock Levels"
+
+#### **Demand Trends Section**
+- Show only if products selected
+- Title: "📊 Daily Demand Trends"
+- Full-width trends chart
+
+#### **Forecasting Section**
+- Title: "🔮 Demand Forecasting"
+- Spinner with message: "Generating forecast for {product}..."
+- Forecast chart with 3-column metrics below:
+  - Average Forecasted Demand (1 decimal)
+  - Peak Forecasted Demand (1 decimal)
+  - Total Demand for period (0 decimals)
+
+#### **Product Details Table**
+- Title: "📋 Product Details"
+- Columns: product_id, product_name, current_stock, reorder_point, max_stock, status
+- Convert stock values to integers
+- Color-code status column:
+  - Critical: #ffcccc
+  - Low: #ffe6cc  
+  - High: #cce6ff
+  - Good: #ccffcc
+
+### **Footer**
+- Horizontal rule
+- Centered text with current timestamp
+- Content: "🔄 Dashboard updates in real-time • 📈 Powered by Prophet forecasting and Plotly visualizations"
+
+## **Error Handling & User Experience**
+
+1. **Data Loading Errors**
+   - Show clear error message if CSV not found
+   - Use `st.stop()` to halt execution
+   - Suggest checking file path
+
+2. **Forecasting Errors**
+   - Display warnings for insufficient data
+   - Handle Prophet exceptions gracefully
+   - Return None for failed forecasts
+
+3. **Performance Optimization**
+   - Cache forecast results in forecaster object
+   - Use `st.spinner()` for long operations
+   - Suppress Prophet warnings with `warnings.filterwarnings('ignore')`
+
+## **Styling & Visual Design**
+
+1. **Color Scheme**
+   - Critical: Red (#ff0000)
+   - Low: Orange (#ffa500)
+   - Good: Green (#008000)
+   - High: Blue (#0000ff)
+
+2. **Chart Consistency**
+   - All charts use consistent height values
+   - Professional color palette
+   - Clear titles and axis labels
+   - Responsive design with `use_container_width=True`
+
+3. **Interactive Elements**
+   - Responsive sidebar controls
+   - Real-time chart updates
+   - Hover tooltips on charts
+   - Professional gauge styling
+
+## **Technical Implementation Notes**
+
+1. **Prophet Configuration**
+   - Disable daily and yearly seasonality
+   - Enable weekly seasonality
+   - Handle minimum data requirements (≥2 records)
+
+2. **Data Processing**
+   - Use `groupby().last()` for latest product data
+   - Apply vectorized operations for status calculations
+   - Handle missing data gracefully
+
+3. **Streamlit Best Practices**
+   - Wide layout for dashboard presentation
+   - Proper column organization
+   - Efficient chart rendering
+   - Clear section headers with emojis
+
+## **File Structure Expected**
+```
+inventory-forecast/
+├── inventory_forecast.py
+├── requirements.txt
+├── data/
+│   └── sample_inventory.csv
+└── README.md
+```
+
+## **Main Function Structure**
+The main() function should follow this flow:
+1. Initialize InventoryForecaster
+2. Load and validate data
+3. Create sidebar controls
+4. Generate status summary cards
+5. Render dashboard overview charts
+6. Display stock levels chart
+7. Show demand trends (if products selected)
+8. Generate forecasting section with metrics
+9. Display product details table
+10. Add footer
+
+**Important**: Ensure all Plotly charts use `st.plotly_chart(fig, use_container_width=True)` for responsive design and that the application handles edge cases gracefully with appropriate user feedback.
+
+## **Requirements.txt Content**
+```
+pandas>=1.5.0
+plotly>=5.0.0
+prophet>=1.1.0
+streamlit>=1.28.0
+numpy>=1.15.4
+matplotlib>=2.0.0
+```
+
+## **Sample Data Structure for data/sample_inventory.csv**
+The CSV should contain time series data with columns: date, product_id, product_name, current_stock, daily_demand, reorder_point, max_stock, supplier_lead_time. Include data for at least 5 products (P001-P005) spanning several months with realistic inventory patterns.
+
+This prompt provides comprehensive specifications for recreating the exact inventory forecasting Streamlit application with all its features, styling, and functionality.
