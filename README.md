@@ -306,7 +306,7 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - ${PWD}:/app  # Use absolute path to ensure files are found
+      - C:/Users/Mike/Downloads/coding/inventory-forecast:/app  # Use absolute path to ensure files are found
     ports:
       - "7342:7342"
     command: >
