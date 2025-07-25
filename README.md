@@ -324,6 +324,38 @@ networks:
     driver: bridge
 ```
 
+#### Minimal Portainer Stack Example
+
+If you already have Portainer running, use this minimal stack file for your inventory app:
+
+```yaml
+version: '3.8'
+services:
+  inventory-app:
+    image: python:3.11-slim
+    container_name: inventory-forecast-app
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8501:8501"
+    command: >
+      sh -c "pip install --upgrade pip && \
+             pip install -r requirements.txt && \
+             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - inventory-network
+
+networks:
+  inventory-network:
+    driver: bridge
+```
+
+Paste this into Portainer's stack editor (Stacks → Add Stack) to deploy only the inventory app.
+
 ### Managing with Portainer
 
 After deployment, use Portainer's web interface to:
