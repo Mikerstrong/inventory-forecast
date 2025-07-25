@@ -8,11 +8,11 @@ services:
     volumes:
       - ./:/app
     ports:
-      - "8501:8601"
+      - "8501:8501"
     command: >
       sh -c "pip install --upgrade pip && \
              pip install -r requirements.txt && \
-             streamlit run inventory_forecast.py --server.port 8601 --server.address 0.0.0.0"
+             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

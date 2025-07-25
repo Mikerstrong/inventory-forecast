@@ -247,7 +247,7 @@ Deploy the entire system using Docker and manage it with Portainer's web interfa
    ```
 
 3. **Access the applications:**
-   - 📊 **Inventory Dashboard**: [http://localhost:8501](http://localhost:8501)
+   - 📊 **Inventory Dashboard**: [http://localhost:7342](http://localhost:7342)
    - 🐳 **Portainer Management**: [http://localhost:9000](http://localhost:9000)
 
 ### Portainer Deployment Methods
@@ -308,11 +308,11 @@ services:
     volumes:
       - ./:/app
     ports:
-      - "8501:8501"
+      - "7342:7342"
     command: >
       sh -c "pip install --upgrade pip && \
              pip install -r requirements.txt && \
-             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
+             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
@@ -338,11 +338,11 @@ services:
     volumes:
       - ./:/app
     ports:
-      - "8501:8501"
+      - "7342:7342"
     command: >
       sh -c "pip install --upgrade pip && \
              pip install -r requirements.txt && \
-             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
+             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
