@@ -306,7 +306,7 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - ./:/app
+      - ${PWD}:/app  # Use absolute path to ensure files are found
     ports:
       - "7342:7342"
     command: >
@@ -336,12 +336,12 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - ./:/app
+      - ${PWD}:/app  # Use absolute path to ensure files are found
     ports:
       - "7342:7342"
     command: >
-      sh -c "pip install --upgrade pip && \
-             pip install -r requirements.txt && \
+      sh -c "pip install --upgrade pip --root-user-action=ignore && \
+             pip install -r requirements.txt --root-user-action=ignore && \
              streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1

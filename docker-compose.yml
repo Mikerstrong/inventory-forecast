@@ -6,14 +6,20 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - ./:/app
+      - ${PWD}:/app  # Use absolute path to ensure files are found
     ports:
-      - "8501:8501"
+      - "7342:7342"  # Updated port to match README
     command: >
-      sh -c "pip install --upgrade pip && \
-             pip install -r requirements.txt && \
-             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
+      sh -c "pip install --upgrade pip --root-user-action=ignore && \
+             pip install -r requirements.txt --root-user-action=ignore && \
+             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    networks:
+      - inventory-network
+
+networks:
+  inventory-network:
+    driver: bridge
 
