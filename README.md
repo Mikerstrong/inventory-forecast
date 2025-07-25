@@ -324,6 +324,54 @@ networks:
     driver: bridge
 ```
 
+#### Quick Fix for Portainer Stack
+
+**Copy and paste this exact stack configuration into Portainer:**
+
+```yaml
+version: '3.8'
+services:
+  inventory-app:
+    image: python:3.11-slim
+    container_name: inventory-forecast-app
+    working_dir: /app
+    volumes:
+      - type: bind
+        source: /c/Users/Mike/Downloads/coding/inventory-forecast
+        target: /app
+    ports:
+      - "7342:7342"
+    command: >
+      sh -c "pip install --upgrade pip --root-user-action=ignore && \
+             pip install -r requirements.txt --root-user-action=ignore && \
+             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+```
+
+#### Alternative Portainer Stack (if above doesn't work)
+
+```yaml
+version: '3.8'
+services:
+  inventory-app:
+    image: python:3.11-slim
+    container_name: inventory-forecast-app
+    working_dir: /app
+    volumes:
+      - /mnt/c/Users/Mike/Downloads/coding/inventory-forecast:/app
+    ports:
+      - "7342:7342"
+    command: >
+      sh -c "pip install --upgrade pip --root-user-action=ignore && \
+             pip install -r requirements.txt --root-user-action=ignore && \
+             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+```
+
 #### Minimal Portainer Stack Example
 
 If you already have Portainer running, use this minimal stack file for your inventory app:
