@@ -17,7 +17,7 @@ A Python-based inventory management system with an interactive **Streamlit web a
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Mikerstrong/inventory-forecast.git
    cd inventory-forecast
    ```
 
@@ -228,6 +228,161 @@ echo "headless = true" >> ~/.streamlit/config.toml
 # Procfile
 web: sh setup.sh && streamlit run inventory_forecast.py
 ```
+
+## 🐳 Docker & Portainer Deployment (Recommended)
+
+Deploy the entire system using Docker and manage it with Portainer's web interface. This is the **recommended production deployment method**.
+
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Mikerstrong/inventory-forecast.git
+   cd inventory-forecast
+   ```
+
+2. **Deploy with Docker Compose:**
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Access the applications:**
+   - 📊 **Inventory Dashboard**: [http://localhost:8501](http://localhost:8501)
+   - 🐳 **Portainer Management**: [http://localhost:9000](http://localhost:9000)
+
+### Portainer Deployment Methods
+
+#### Method 1: Deploy Portainer + App Together (Recommended)
+
+The provided `docker-compose.yml` deploys both services together:
+
+```bash
+# Clone and deploy
+git clone https://github.com/Mikerstrong/inventory-forecast.git
+cd inventory-forecast
+docker compose up -d
+
+# Verify deployment
+docker ps
+```
+
+#### Method 2: Deploy via Portainer Stacks
+
+1. **Install Portainer first:**
+   ```bash
+   docker volume create portainer_data
+   docker run -d -p 9000:9000 -p 9443:9443 --name portainer --restart=always \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v portainer_data:/data portainer/portainer-ce:latest
+   ```
+
+2. **Access Portainer**: Visit [http://localhost:9000](http://localhost:9000)
+
+3. **Create a Stack:**
+   - Go to **Stacks** → **Add Stack**
+   - Name: `inventory-forecast`
+   - Copy the docker-compose.yml content (excluding the Portainer service)
+   - Click **Deploy the stack**
+
+#### Method 3: Remote Repository Deployment
+
+Deploy directly from GitHub in Portainer:
+
+1. **In Portainer**, go to **Stacks** → **Add Stack**
+2. **Choose "Repository"**
+3. **Repository URL**: `https://github.com/Mikerstrong/inventory-forecast`
+4. **Compose file path**: `docker-compose.yml`
+5. **Click Deploy**
+
+### Portainer Stack Configuration
+
+For Portainer deployment, use this stack configuration:
+
+```yaml
+version: '3.8'
+services:
+  inventory-app:
+    image: python:3.11-slim
+    container_name: inventory-forecast-app
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8501:8501"
+    command: >
+      sh -c "pip install --upgrade pip && \
+             pip install -r requirements.txt && \
+             streamlit run inventory_forecast.py --server.port 8501 --server.address 0.0.0.0"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - inventory-network
+
+networks:
+  inventory-network:
+    driver: bridge
+```
+
+### Managing with Portainer
+
+After deployment, use Portainer's web interface to:
+
+#### 📊 **Dashboard Management**
+- **View Containers**: Monitor app health and resource usage
+- **Logs**: Real-time log viewing for debugging
+- **Console Access**: Terminal access to containers
+- **Resource Monitoring**: CPU, memory, and network usage
+
+#### 🔄 **Application Updates**
+- **Stack Updates**: Redeploy when code changes
+- **Image Updates**: Pull latest base images
+- **Configuration Changes**: Update environment variables
+
+#### 🛠️ **Maintenance Tasks**
+- **Backup Volumes**: Backup inventory data
+- **Scale Services**: Increase/decrease replicas
+- **Network Management**: Configure container networking
+
+### Environment Variables
+
+Configure the app through Portainer environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `STREAMLIT_SERVER_PORT` | `8501` | Streamlit server port |
+| `STREAMLIT_SERVER_ADDRESS` | `0.0.0.0` | Server bind address |
+| `PYTHONUNBUFFERED` | `1` | Python output buffering |
+
+### Production Deployment Tips
+
+#### 🔒 **Security**
+- Use HTTPS with reverse proxy (nginx/traefik)
+- Change default Portainer admin password
+- Configure firewall rules for ports 8501 and 9000
+
+#### 📈 **Performance**
+- Allocate sufficient memory (2GB+ recommended)
+- Use SSD storage for better I/O performance
+- Monitor container resource usage in Portainer
+
+#### 🔄 **Backup & Recovery**
+```bash
+# Backup Portainer data
+docker run --rm -v portainer_data:/data -v $(pwd):/backup alpine tar czf /backup/portainer-backup.tar.gz -C /data .
+
+# Restore Portainer data
+docker run --rm -v portainer_data:/data -v $(pwd):/backup alpine tar xzf /backup/portainer-backup.tar.gz -C /data
+```
+
+### Troubleshooting Portainer Deployment
+
+1. **Port Conflicts**: Change ports in docker-compose.yml if needed
+2. **Permission Issues**: Ensure Docker daemon is accessible
+3. **Container Won't Start**: Check logs in Portainer container view
+4. **Update Issues**: Use Portainer's "Recreate" option for clean redeployment
+
+---
 
 ## Troubleshooting
 

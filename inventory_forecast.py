@@ -69,17 +69,34 @@ class InventoryForecaster:
             # Prepare data for Prophet
             prophet_data = product_data[['date', 'daily_demand']].copy()
             prophet_data.columns = ['ds', 'y']
+            prophet_data['ds'] = pd.to_datetime(prophet_data['ds'])
+            prophet_data['y'] = pd.to_numeric(prophet_data['y'], errors='coerce')
+            prophet_data = prophet_data.dropna().sort_values('ds').reset_index(drop=True)
             
-            # Create and fit the model
+            # Create and fit the model with conservative settings
             model = Prophet(
                 daily_seasonality=False,
-                weekly_seasonality=True,
+                weekly_seasonality=False,  # Disable to avoid timestamp issues
                 yearly_seasonality=False
             )
             model.fit(prophet_data)
             
-            # Make future predictions
-            future = model.make_future_dataframe(periods=periods)
+            # Create future dataframe manually to avoid timestamp arithmetic
+            future_dates = []
+            
+            # Add historical dates
+            for _, row in prophet_data.iterrows():
+                future_dates.append(row['ds'])
+            
+            # Add future dates manually
+            last_date = prophet_data['ds'].max()
+            for i in range(1, periods + 1):
+                future_date = last_date + pd.Timedelta(days=i)
+                future_dates.append(future_date)
+            
+            future = pd.DataFrame({'ds': future_dates})
+            future = future.drop_duplicates().sort_values('ds').reset_index(drop=True)
+            
             forecast = model.predict(future)
             
             # Store forecast results
@@ -234,15 +251,25 @@ def create_forecast_chart(forecaster, selected_product):
         line=dict(color='red', width=2)
     ))
     
-    # Confidence intervals
+    # Confidence intervals - using separate traces to avoid concatenation issues
     fig.add_trace(go.Scatter(
-        x=forecast_data['ds'].tolist() + forecast_data['ds'].tolist()[::-1],
-        y=forecast_data['yhat_upper'].tolist() + forecast_data['yhat_lower'].tolist()[::-1],
+        x=forecast_data['ds'],
+        y=forecast_data['yhat_upper'],
+        mode='lines',
+        line=dict(width=0),
+        showlegend=False,
+        name='Upper Bound'
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=forecast_data['ds'],
+        y=forecast_data['yhat_lower'],
+        mode='lines',
+        line=dict(width=0),
         fill='tonexty',
         fillcolor='rgba(255,0,0,0.1)',
-        line=dict(color='rgba(255,255,255,0)'),
-        name='Confidence Interval',
-        showlegend=False
+        showlegend=False,
+        name='Confidence Interval'
     ))
     
     fig.update_layout(
@@ -305,16 +332,45 @@ def main():
     # Product selection
     st.sidebar.subheader("🎯 Product Selection")
     all_products = forecaster.df['product_id'].unique()
+    
+    # Low stock items dropdown
+    low_stock_items = latest_data[latest_data['status'].isin(['Critical', 'Low'])]
+    if len(low_stock_items) > 0:
+        st.sidebar.subheader("⚠️ Low Stock Alert")
+        low_stock_options = [f"{row['product_id']} - {row['product_name']} ({row['status']})" 
+                           for _, row in low_stock_items.iterrows()]
+        selected_low_stock = st.sidebar.selectbox(
+            "Items needing attention:",
+            ["Select an item..."] + low_stock_options,
+            help="Products with Critical or Low stock status"
+        )
+        
+        # Extract product ID from selection
+        if selected_low_stock != "Select an item...":
+            selected_low_stock_id = selected_low_stock.split(" - ")[0]
+            st.sidebar.info(f"Selected: {selected_low_stock_id}")
+            
+            # Button to use this product for forecasting
+            if st.sidebar.button("📊 Forecast This Item", key="forecast_low_stock"):
+                st.session_state.forecast_product = selected_low_stock_id
+    else:
+        st.sidebar.success("✅ No low stock items!")
+    
     selected_products_trends = st.sidebar.multiselect(
         "Select products for trend analysis",
         all_products,
         default=all_products[:3]
     )
     
+    # Use session state for forecast selection if available, otherwise default
+    default_forecast_index = 0
+    if hasattr(st.session_state, 'forecast_product') and st.session_state.forecast_product in all_products:
+        default_forecast_index = list(all_products).index(st.session_state.forecast_product)
+    
     selected_product_forecast = st.sidebar.selectbox(
         "Select product for forecasting",
         all_products,
-        index=0
+        index=default_forecast_index
     )
     
     forecast_periods = st.sidebar.slider(
