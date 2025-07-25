@@ -306,7 +306,7 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - C:/Users/Mike/Downloads/coding/inventory-forecast:/app  # Use absolute path to ensure files are found
+      - /host/path/to/inventory-forecast:/app  # Update this path to match your server's file path
     ports:
       - "7342:7342"
     command: >
@@ -336,7 +336,7 @@ services:
     container_name: inventory-forecast-app
     working_dir: /app
     volumes:
-      - C:/Users/Mike/Downloads/coding/inventory-forecast:/app  # Use absolute path to ensure files are found
+      - /host/path/to/inventory-forecast:/app  # Update this path to match your server's file path
     ports:
       - "7342:7342"
     command: >
@@ -413,6 +413,11 @@ docker run --rm -v portainer_data:/data -v $(pwd):/backup alpine tar xzf /backup
 2. **Permission Issues**: Ensure Docker daemon is accessible
 3. **Container Won't Start**: Check logs in Portainer container view
 4. **Update Issues**: Use Portainer's "Recreate" option for clean redeployment
+5. **Volume Mount Issues**: 
+   - For Docker/Portainer running on Linux: Use Linux-style paths like `/path/to/your/files:/app`
+   - For Docker Desktop on Windows: Use `/c/Users/YourName/path:/app` format (not `C:/Users/...`)
+   - For Docker on WSL2: Use `/mnt/c/Users/YourName/path:/app` format
+   - **IMPORTANT**: Replace `/host/path/to/inventory-forecast` in the examples with YOUR actual server path
 
 ---
 
