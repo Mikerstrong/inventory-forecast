@@ -661,6 +661,44 @@ def main():
         else:
             st.warning(f"Could not generate forecast for {selected_product_forecast}. Not enough data.")
     
+    # Additional visualization: Inventory Forecast Gauges
+    st.subheader("Inventory Forecast Gauges")
+    # Example gauges: Average, Min, Max forecasted demand for selected product
+    if selected_product_forecast in forecaster.forecasts:
+        forecast_data = forecaster.forecasts[selected_product_forecast]['forecast']
+        future_demand = forecast_data[forecast_data['ds'] > forecaster.df['date'].max()]
+        avg_forecast = future_demand['yhat'].mean()
+        min_forecast = future_demand['yhat'].min()
+        max_forecast = future_demand['yhat'].max()
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            avg_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=avg_forecast,
+                title={'text': "Avg Forecasted Demand"},
+                gauge={'axis': {'range': [0, max_forecast]}, 'bar': {'color': "blue"}}
+            ))
+            avg_gauge.update_layout(height=250)
+            st.plotly_chart(avg_gauge, use_container_width=True)
+        with col2:
+            min_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=min_forecast,
+                title={'text': "Min Forecasted Demand"},
+                gauge={'axis': {'range': [0, max_forecast]}, 'bar': {'color': "green"}}
+            ))
+            min_gauge.update_layout(height=250)
+            st.plotly_chart(min_gauge, use_container_width=True)
+        with col3:
+            max_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=max_forecast,
+                title={'text': "Max Forecasted Demand"},
+                gauge={'axis': {'range': [0, max_forecast]}, 'bar': {'color': "red"}}
+            ))
+            max_gauge.update_layout(height=250)
+            st.plotly_chart(max_gauge, use_container_width=True)
+    
     # Product details table
     st.subheader("📋 Product Details")
     
@@ -696,6 +734,43 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
+    # Additional visualization: Days Until Stockout Gauges (10, 20, 30 days)
+    st.subheader("Days Until Stockout Gauges")
+    # Create bins for 10, 20, 30 days
+    bins = [0, 10, 20, 30, np.inf]
+    labels = ['<=10 days', '11-20 days', '21-30 days', '>30 days']
+    days_heatmap_data['stockout_bin'] = pd.cut(days_heatmap_data['days_until_stockout'], bins=bins, labels=labels, right=True)
+    bin_counts = days_heatmap_data['stockout_bin'].value_counts().reindex(labels, fill_value=0)
+    col1, col2, col3, col4 = st.columns(4)
+    gauge_bins = {}
+    for i, (label, col) in enumerate(zip(labels, [col1, col2, col3, col4])):
+        with col:
+            gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=bin_counts[label],
+                title={'text': label},
+                gauge={'axis': {'range': [0, len(days_heatmap_data)]}, 'bar': {'color': ["red", "orange", "yellow", "green"][i]}}
+            ))
+            gauge.update_layout(height=200)
+            st.plotly_chart(gauge, use_container_width=True)
+            # Add clickable button for each gauge
+            if st.button(f"Show parts for {label}", key=f"show_{label}"):
+                selected_bin = label
+                show_table = True
+                gauge_bins[label] = True
+            else:
+                gauge_bins[label] = False
+    # Show table if any gauge button was clicked
+    if any(gauge_bins.values()):
+        selected_bin = [label for label, clicked in gauge_bins.items() if clicked][0]
+        st.subheader(f"Parts with Days Until Stockout: {selected_bin}")
+        filtered = days_heatmap_data[days_heatmap_data['stockout_bin'] == selected_bin]
+        if not filtered.empty:
+            table_cols = ['product_id', 'product_name', 'current_stock', 'reorder_point', 'max_stock', 'avg_daily_demand', 'days_until_stockout', 'status']
+            st.dataframe(filtered[table_cols], use_container_width=True)
+        else:
+            st.info("No parts in this category.")
 
 if __name__ == "__main__":
     main()
