@@ -324,6 +324,50 @@ networks:
     driver: bridge
 ```
 
+#### 🚀 WORKING Portainer Stack (No Volume Issues!)
+
+**Copy and paste this stack configuration into Portainer:**
+
+```yaml
+version: '3.8'
+services:
+  inventory-app:
+    build: https://github.com/Mikerstrong/inventory-forecast.git
+    container_name: inventory-forecast-app
+    ports:
+      - "7342:7342"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+```
+
+This approach builds the Docker image directly from your GitHub repository, eliminating all volume mounting issues. The code and requirements.txt are copied into the container during the build process.
+
+#### Alternative: Manual Build Method
+
+If the above doesn't work in your Portainer, use this approach:
+
+1. **Clone the repo locally on your Portainer server:**
+   ```bash
+   git clone https://github.com/Mikerstrong/inventory-forecast.git
+   cd inventory-forecast
+   docker build -t inventory-forecast .
+   ```
+
+2. **Then use this stack in Portainer:**
+   ```yaml
+   version: '3.8'
+   services:
+     inventory-app:
+       image: inventory-forecast
+       container_name: inventory-forecast-app
+       ports:
+         - "7342:7342"
+       environment:
+         - PYTHONUNBUFFERED=1
+       restart: unless-stopped
+   ```
+
 #### Quick Fix for Portainer Stack
 
 **Copy and paste this exact stack configuration into Portainer:**

@@ -2,17 +2,10 @@ version: '3.8'
 
 services:
   inventory-app:
-    image: python:3.11-slim
+    build: .
     container_name: inventory-forecast-app
-    working_dir: /app
-    volumes:
-      - /host/path/to/inventory-forecast:/app  # Update this path to match your server's file path
     ports:
       - "7342:7342"  # Updated port to match README
-    command: >
-      sh -c "pip install --upgrade pip --root-user-action=ignore && \
-             pip install -r requirements.txt --root-user-action=ignore && \
-             streamlit run inventory_forecast.py --server.port 7342 --server.address 0.0.0.0"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
