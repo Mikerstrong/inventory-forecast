@@ -808,6 +808,201 @@ def main():
     st.markdown("<span style='color:gray;font-size:small;'>(Pandas DataFrame)</span>", unsafe_allow_html=True)
     st.dataframe(corr_matrix.round(2), use_container_width=True)
 
+    # --- 20 New Dashboard Features ---
+    st.header("🆕 Experimental Features Showcase (20 Random Dashboard Features)")
+    # 1. Inventory Turnover Ratio
+    st.subheader("Inventory Turnover Ratio")
+    turnover = forecaster.df.groupby('product_id')['daily_demand'].sum() / latest_data.set_index('product_id')['current_stock']
+    st.dataframe(turnover.rename('Turnover Ratio').round(2))
+
+    # 2. Days of Supply (Current Stock / Avg Daily Demand)
+    st.subheader("Days of Supply")
+    days_of_supply = latest_data.set_index('product_id')['current_stock'] / avg_demand.set_index('product_id')['avg_daily_demand']
+    st.dataframe(days_of_supply.rename('Days of Supply').round(1))
+
+    # 3. Overstocked Products Table
+    st.subheader("Overstocked Products Table")
+    overstocked = latest_data[latest_data['status'] == 'High']
+    st.dataframe(overstocked[['product_id', 'product_name', 'current_stock', 'max_stock']])
+
+    # 4. Critical Stock Products Table
+    st.subheader("Critical Stock Products Table")
+    critical = latest_data[latest_data['status'] == 'Critical']
+    st.dataframe(critical[['product_id', 'product_name', 'current_stock', 'reorder_point']])
+
+    # 5. Product Age (days since first record)
+    st.subheader("Product Age (Days)")
+    product_age = (forecaster.df.groupby('product_id')['date'].min().apply(lambda d: (datetime.now() - d).days))
+    st.dataframe(product_age.rename('Product Age (Days)'))
+
+    # 6. Demand Volatility (Std Dev)
+    st.subheader("Demand Volatility (Std Dev)")
+    volatility = forecaster.df.groupby('product_id')['daily_demand'].std()
+    st.dataframe(volatility.rename('Demand Volatility').round(2))
+
+    # 7. Top 5 Fastest Moving Products
+    st.subheader("Top 5 Fastest Moving Products")
+    top_fast = turnover.sort_values(ascending=False).head(5)
+    st.dataframe(top_fast.rename('Turnover Ratio'))
+
+    # 8. Top 5 Slowest Moving Products
+    st.subheader("Top 5 Slowest Moving Products")
+    slowest = turnover.sort_values().head(5)
+    st.dataframe(slowest.rename('Turnover Ratio'))
+
+    # 9. Demand Trend Slope (Linear Regression)
+    st.subheader("Demand Trend Slope (per Product)")
+    from sklearn.linear_model import LinearRegression
+    slopes = {}
+    for pid in forecaster.df['product_id'].unique():
+        dfp = forecaster.df[forecaster.df['product_id'] == pid]
+        if len(dfp) > 1:
+            X = (dfp['date'] - dfp['date'].min()).dt.days.values.reshape(-1,1)
+            y = dfp['daily_demand'].values
+            model = LinearRegression().fit(X, y)
+            slopes[pid] = model.coef_[0]
+    st.dataframe(pd.Series(slopes, name='Demand Slope').round(2))
+
+    # 10. Product Demand Boxplot
+    st.subheader("Product Demand Boxplot")
+    box_fig = px.box(forecaster.df, x='product_id', y='daily_demand', points='all', title='Demand Distribution by Product')
+    st.plotly_chart(box_fig, use_container_width=True)
+
+    # 11. Stock Status Sunburst Chart
+    st.subheader("Stock Status Sunburst Chart")
+    sunburst_fig = px.sunburst(latest_data, path=['status', 'product_name'], values='current_stock', color='status', title='Stock Status Sunburst')
+    st.plotly_chart(sunburst_fig, use_container_width=True)
+
+    # 12. Product Demand Histogram
+    st.subheader("Product Demand Histogram")
+    hist_fig = px.histogram(forecaster.df, x='daily_demand', color='product_id', nbins=30, title='Demand Histogram')
+    st.plotly_chart(hist_fig, use_container_width=True)
+
+    # 13. Stock Level Waterfall Chart
+    st.subheader("Stock Level Waterfall Chart")
+    waterfall_fig = go.Figure(go.Waterfall(
+        x=latest_data['product_name'],
+        y=latest_data['current_stock'] - latest_data['reorder_point'],
+        text=latest_data['status'],
+        connector={'line': {'color': 'rgb(63, 63, 63)'}}
+    ))
+    waterfall_fig.update_layout(title='Stock Level Waterfall', height=400)
+    st.plotly_chart(waterfall_fig, use_container_width=True)
+
+    # 14. Product Demand Calendar Heatmap
+    st.subheader("Product Demand Calendar Heatmap (First Product)")
+    first_pid = forecaster.df['product_id'].unique()[0]
+    cal_data = forecaster.df[forecaster.df['product_id'] == first_pid]
+    cal_data['day'] = cal_data['date'].dt.day
+    cal_data['month'] = cal_data['date'].dt.month
+    cal_fig = px.density_heatmap(cal_data, x='day', y='month', z='daily_demand', title=f'Calendar Heatmap: {first_pid}')
+    st.plotly_chart(cal_fig, use_container_width=True)
+
+    # 15. Product Demand Rolling Mean (7 days)
+    st.subheader("Product Demand Rolling Mean (7 days)")
+    # Fix: Reshape rolling means for Plotly Express
+    rolling_means = forecaster.df.copy()
+    rolling_means['rolling_mean'] = rolling_means.groupby('product_id')['daily_demand'].transform(lambda x: x.rolling(7).mean())
+    roll_fig = px.line(rolling_means, x='date', y='rolling_mean', color='product_id', title='7-Day Rolling Mean')
+    st.plotly_chart(roll_fig, use_container_width=True)
+
+    # 16. Stock Status Treemap
+    st.subheader("Stock Status Treemap")
+    treemap_fig = px.treemap(latest_data, path=['status', 'product_name'], values='current_stock', color='status', title='Stock Status Treemap')
+    st.plotly_chart(treemap_fig, use_container_width=True)
+
+    # 17. Product Demand Autocorrelation Plot (First Product)
+    st.subheader("Product Demand Autocorrelation (First Product)")
+    from pandas.plotting import autocorrelation_plot
+    import matplotlib.pyplot as plt
+    import io
+    ac_data = forecaster.df[forecaster.df['product_id'] == first_pid]['daily_demand']
+    fig_ac, ax_ac = plt.subplots()
+    autocorrelation_plot(ac_data, ax=ax_ac)
+    buf = io.BytesIO()
+    fig_ac.savefig(buf, format='png')
+    st.image(buf)
+
+    # 18. Product Demand Outlier Detection (Z-score)
+    st.subheader("Product Demand Outlier Detection (Z-score)")
+    zscores = (forecaster.df.groupby('product_id')['daily_demand'].transform(lambda x: (x - x.mean()) / x.std()))
+    outliers = forecaster.df[zscores.abs() > 2]
+    st.dataframe(outliers[['product_id', 'product_name', 'date', 'daily_demand']])
+
+    # 19. Product Demand Seasonality (Month)
+    st.subheader("Product Demand Seasonality (by Month)")
+    forecaster.df['month'] = forecaster.df['date'].dt.month
+    seasonality = forecaster.df.groupby(['product_id', 'month'])['daily_demand'].mean().unstack()
+    st.dataframe(seasonality.round(1))
+
+    # 20. Inventory Health Pie Chart
+    st.subheader("Inventory Health Pie Chart")
+    health_counts = latest_data['status'].value_counts()
+    health_pie = go.Figure(data=[go.Pie(labels=health_counts.index, values=health_counts.values)])
+    health_pie.update_layout(title='Inventory Health Distribution')
+    st.plotly_chart(health_pie, use_container_width=True)
+
+    # --- 10 More Random Dashboard Features ---
+    st.header("🆕 More Experimental Features (10 Additional)")
+
+    # 21. Product Demand Median Table
+    st.subheader("Product Demand Median Table")
+    median_demand = forecaster.df.groupby('product_id')['daily_demand'].median()
+    st.dataframe(median_demand.rename('Median Demand'))
+
+    # 22. Product Demand Range Table
+    st.subheader("Product Demand Range Table")
+    demand_range = forecaster.df.groupby('product_id')['daily_demand'].agg(lambda x: x.max() - x.min())
+    st.dataframe(demand_range.rename('Demand Range'))
+
+    # 23. Product Demand Cumulative Sum Plot
+    st.subheader("Product Demand Cumulative Sum Plot")
+    cumsum_df = forecaster.df.copy()
+    cumsum_df['cumsum'] = cumsum_df.groupby('product_id')['daily_demand'].cumsum()
+    cumsum_fig = px.line(cumsum_df, x='date', y='cumsum', color='product_id', title='Cumulative Demand Over Time')
+    st.plotly_chart(cumsum_fig, use_container_width=True)
+
+    # 24. Product Demand Moving Std (7 days)
+    st.subheader("Product Demand Moving Std (7 days)")
+    movstd_df = forecaster.df.copy()
+    movstd_df['movstd'] = movstd_df.groupby('product_id')['daily_demand'].transform(lambda x: x.rolling(7).std())
+    movstd_fig = px.line(movstd_df, x='date', y='movstd', color='product_id', title='7-Day Moving Std Dev')
+    st.plotly_chart(movstd_fig, use_container_width=True)
+
+    # 25. Product Demand Min/Max Table
+    st.subheader("Product Demand Min/Max Table")
+    minmax = forecaster.df.groupby('product_id')['daily_demand'].agg(['min', 'max'])
+    st.dataframe(minmax)
+
+    # 26. Product Demand Quantile Table (0.25, 0.5, 0.75)
+    st.subheader("Product Demand Quantiles Table")
+    quantiles = forecaster.df.groupby('product_id')['daily_demand'].quantile([0.25, 0.5, 0.75]).unstack()
+    quantiles.columns = ['Q1','Median','Q3']
+    st.dataframe(quantiles)
+
+    # 27. Product Demand Heatmap (Products vs. Days)
+    st.subheader("Product Demand Heatmap (Products vs. Days)")
+    heatmap_pivot = forecaster.df.pivot_table(index='product_id', columns='date', values='daily_demand')
+    heatmap_fig2 = go.Figure(data=go.Heatmap(z=heatmap_pivot.values, x=heatmap_pivot.columns, y=heatmap_pivot.index, colorscale='Viridis'))
+    heatmap_fig2.update_layout(title='Product Demand Heatmap', height=400)
+    st.plotly_chart(heatmap_fig2, use_container_width=True)
+
+    # 28. Product Demand Skewness Table
+    st.subheader("Product Demand Skewness Table")
+    skewness = forecaster.df.groupby('product_id')['daily_demand'].skew()
+    st.dataframe(skewness.rename('Skewness').round(2))
+
+    # 29. Product Demand Kurtosis Table
+    st.subheader("Product Demand Kurtosis Table")
+    kurtosis = forecaster.df.groupby('product_id')['daily_demand'].apply(pd.Series.kurt)
+    st.dataframe(kurtosis.rename('Kurtosis').round(2))
+
+    # 30. Product Demand Correlation with Days Until Stockout
+    st.subheader("Product Demand Correlation with Days Until Stockout")
+    # Merge avg demand and days_until_stockout
+    corr_df = days_heatmap_data[['product_id','days_until_stockout']].merge(avg_demand, on='product_id')
+    corr_val = corr_df['avg_daily_demand'].corr(corr_df['days_until_stockout'])
+    st.metric("Correlation (Avg Daily Demand vs. Days Until Stockout)", f"{corr_val:.2f}")
     # Additional visualization: Days Until Stockout Gauges (10, 20, 30 days)
     st.subheader("Days Until Stockout Gauges")
     st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
