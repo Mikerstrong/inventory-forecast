@@ -158,14 +158,13 @@ def create_inventory_health_gauge(latest_data):
             }
         }
     ))
-    
     fig.update_layout(height=300)
     return fig
 
 def create_stock_levels_chart(latest_data):
     """Create stock levels bar chart."""
     fig = go.Figure()
-    
+
     # Current stock bars
     fig.add_trace(go.Bar(
         x=latest_data['product_name'],
@@ -175,7 +174,7 @@ def create_stock_levels_chart(latest_data):
         text=latest_data['status'],
         textposition='auto',
     ))
-    
+
     # Add reorder points as a line
     fig.add_trace(go.Scatter(
         x=latest_data['product_name'],
@@ -185,14 +184,20 @@ def create_stock_levels_chart(latest_data):
         line=dict(color='red', dash='dash'),
         marker=dict(color='red', size=8)
     ))
-    
+
     fig.update_layout(
         title="Stock Levels by Product",
         xaxis_title="Product",
         yaxis_title="Stock Level",
-        height=400
+        height=400,
+        xaxis=dict(
+            tickangle=45,
+            rangeslider=dict(visible=True),  # Adds a scroll bar for horizontal scrolling
+            type='category',
+        ),
+        dragmode='pan',  # Enables panning
     )
-    
+
     return fig
 
 def create_demand_trends_chart(df, selected_products):
@@ -438,7 +443,190 @@ def main():
     st.subheader("📦 Current Stock Levels")
     stock_fig = create_stock_levels_chart(latest_data)
     st.plotly_chart(stock_fig, use_container_width=True)
-    
+
+    # Additional visualization 1: Stacked Bar Chart (Current Stock vs. Reorder Point)
+    st.subheader("Current Stock vs. Reorder Point (Stacked Bar)")
+    stacked_fig = go.Figure()
+    stacked_fig.add_trace(go.Bar(
+        x=latest_data['product_name'],
+        y=latest_data['current_stock'],
+        name='Current Stock',
+        marker_color='blue',
+    ))
+    stacked_fig.add_trace(go.Bar(
+        x=latest_data['product_name'],
+        y=latest_data['reorder_point'],
+        name='Reorder Point',
+        marker_color='red',
+    ))
+    stacked_fig.update_layout(
+        barmode='stack',
+        title="Current Stock vs. Reorder Point",
+        xaxis_title="Product",
+        yaxis_title="Quantity",
+        height=400
+    )
+    st.plotly_chart(stacked_fig, use_container_width=True)
+
+    # Additional visualization 2: Heatmap of Stock Status
+    st.subheader("Stock Status Heatmap")
+    heatmap_data = latest_data.copy()
+    heatmap_data['status_code'] = heatmap_data['status'].map({
+        'Critical': 0,
+        'Low': 1,
+        'Good': 2,
+        'High': 3
+    })
+    heatmap_fig = go.Figure(data=go.Heatmap(
+        z=[heatmap_data['status_code']],
+        x=heatmap_data['product_name'],
+        y=['Status'],
+        colorscale=[
+            [0.0, 'red'],
+            [0.25, 'orange'],
+            [0.5, 'green'],
+            [0.75, 'blue'],
+            [1.0, 'blue']
+        ],
+        colorbar=dict(
+            tickvals=[0,1,2,3],
+            ticktext=['Critical','Low','Good','High'],
+            title='Status'
+        )
+    ))
+    heatmap_fig.update_layout(
+        title="Stock Status by Product (Heatmap)",
+        xaxis_title="Product",
+        yaxis_title="Status",
+        height=500
+    )
+    st.plotly_chart(heatmap_fig, use_container_width=True)
+
+    # Additional visualization 3: Inventory Metrics Heatmap
+    st.subheader("Inventory Metrics Heatmap")
+    metrics = ['current_stock', 'reorder_point', 'max_stock']
+    metrics_heatmap = latest_data.set_index('product_name')[metrics].T
+    metrics_fig = go.Figure(data=go.Heatmap(
+        z=metrics_heatmap.values,
+        x=metrics_heatmap.columns,
+        y=metrics_heatmap.index,
+        colorscale='Viridis',
+        colorbar=dict(title='Quantity')
+    ))
+    metrics_fig.update_layout(
+        title="Inventory Metrics Heatmap",
+        xaxis_title="Product",
+        yaxis_title="Metric",
+        height=600
+    )
+    st.plotly_chart(metrics_fig, use_container_width=True)
+
+    # Additional visualization 4: Days Until Stockout Heatmap
+    st.subheader("Days Until Stockout Heatmap")
+    # Calculate days until stockout (simple estimate: current_stock / avg daily demand)
+    days_heatmap_data = latest_data.copy()
+    # Merge with average daily demand per product
+    avg_demand = forecaster.df.groupby('product_id')['daily_demand'].mean().reset_index()
+    avg_demand.columns = ['product_id', 'avg_daily_demand']
+    days_heatmap_data = days_heatmap_data.merge(avg_demand, on='product_id', how='left')
+    days_heatmap_data['days_until_stockout'] = days_heatmap_data.apply(
+        lambda row: row['current_stock'] / row['avg_daily_demand'] if row['avg_daily_demand'] > 0 else None, axis=1
+    )
+    days_fig = go.Figure(data=go.Heatmap(
+        z=[days_heatmap_data['days_until_stockout']],
+        x=days_heatmap_data['product_name'],
+        y=['Days Until Stockout'],
+        colorscale='RdYlGn',
+        colorbar=dict(title='Days')
+    ))
+    days_fig.update_layout(
+        title="Days Until Stockout Heatmap",
+        xaxis_title="Product",
+        yaxis_title="Metric",
+        height=500
+    )
+    st.plotly_chart(days_fig, use_container_width=True)
+
+    # Additional visualization: Days Until Stockout Horizontal Bar Chart
+    st.subheader("Days Until Stockout by Product (Bar Chart)")
+    bar_fig = px.bar(
+        days_heatmap_data,
+        x='days_until_stockout',
+        y='product_name',
+        orientation='h',
+        color='days_until_stockout',
+        color_continuous_scale='RdYlGn',
+        labels={'days_until_stockout': 'Days Until Stockout', 'product_name': 'Product'},
+        title='Days Until Stockout by Product'
+    )
+    st.plotly_chart(bar_fig, use_container_width=True)
+
+    # Additional visualization: Days Until Stockout Risk Pie Chart
+    def risk_category(days):
+        if days is None:
+            return 'Unknown'
+        elif days < 7:
+            return 'Critical'
+        elif days < 14:
+            return 'Low'
+        else:
+            return 'Safe'
+    days_heatmap_data['risk'] = days_heatmap_data['days_until_stockout'].apply(risk_category)
+    risk_counts = days_heatmap_data['risk'].value_counts()
+    pie_fig = go.Figure(data=[go.Pie(
+        labels=risk_counts.index,
+        values=risk_counts.values,
+        marker=dict(colors=['red', 'orange', 'green', 'gray'])
+    )])
+    pie_fig.update_layout(title='Stockout Risk Distribution')
+    st.plotly_chart(pie_fig, use_container_width=True)
+
+    # Additional visualization: Days Until Stockout Table with Conditional Formatting
+    st.subheader("Days Until Stockout Table")
+    def color_days(val):
+        if pd.isnull(val):
+            return 'background-color: #cccccc'
+        elif val < 7:
+            return 'background-color: #ffcccc'
+        elif val < 14:
+            return 'background-color: #ffe6cc'
+        else:
+            return 'background-color: #ccffcc'
+    styled_days = days_heatmap_data[['product_name', 'days_until_stockout']].style.applymap(color_days, subset=['days_until_stockout'])
+    st.dataframe(styled_days, use_container_width=True)
+
+    # Additional visualization: Days Until Stockout Scatter Plot
+    st.subheader("Days Until Stockout vs. Current Stock (Scatter Plot)")
+    scatter_fig = px.scatter(
+        days_heatmap_data,
+        x='current_stock',
+        y='days_until_stockout',
+        color='risk',
+        labels={'current_stock': 'Current Stock', 'days_until_stockout': 'Days Until Stockout'},
+        title='Days Until Stockout vs. Current Stock'
+    )
+    st.plotly_chart(scatter_fig, use_container_width=True)
+
+    # Additional visualization: Days Until Stockout Pareto Chart
+    st.subheader("Days Until Stockout Pareto Chart")
+    # Sort products by ascending days until stockout
+    pareto_data = days_heatmap_data[['product_name', 'days_until_stockout']].dropna().sort_values('days_until_stockout')
+    pareto_fig = go.Figure()
+    # Bar chart for days until stockout
+    pareto_fig.add_trace(go.Bar(
+        x=pareto_data['product_name'],
+        y=pareto_data['days_until_stockout'],
+        name='Days Until Stockout',
+        marker_color='blue'
+    ))
+    pareto_fig.update_layout(
+        title='Days Until Stockout Pareto Chart',
+        xaxis_title='Product',
+        yaxis_title='Days Until Stockout',
+        height=500
+    )
+    st.plotly_chart(pareto_fig, use_container_width=True)
+
     # Row 3: Demand trends
     if selected_products_trends:
         st.subheader("📊 Daily Demand Trends")
