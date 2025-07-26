@@ -530,14 +530,19 @@ def main():
 
     # Additional visualization 3: Inventory Metrics Heatmap
     st.subheader("Inventory Metrics Heatmap")
-    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
+    import random
+    colorscales = [
+        'Viridis', 'Cividis', 'Plasma', 'Magma', 'Inferno', 'Turbo', 'Blues', 'Greens', 'YlOrRd', 'Picnic', 'Rainbow', 'Jet'
+    ]
+    chosen_colorscale = random.choice(colorscales)
+    st.markdown(f"<span style='color:gray;font-size:small;'>(Plotly, colorscale: <b>{chosen_colorscale}</b>)</span>", unsafe_allow_html=True)
     metrics = ['current_stock', 'reorder_point', 'max_stock']
     metrics_heatmap = latest_data.set_index('product_name')[metrics].T
     metrics_fig = go.Figure(data=go.Heatmap(
         z=metrics_heatmap.values,
         x=metrics_heatmap.columns,
         y=metrics_heatmap.index,
-        colorscale='Viridis',
+        colorscale=chosen_colorscale,
         colorbar=dict(title='Quantity')
     ))
     metrics_fig.update_layout(
