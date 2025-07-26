@@ -780,6 +780,33 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    # Multi-Product Correlation Analysis
+    st.subheader("🔗 Multi-Product Correlation Analysis")
+    st.markdown("<span style='color:gray;font-size:small;'>(Pandas, Plotly)</span>", unsafe_allow_html=True)
+    # Pivot the data: rows = date, columns = product_id, values = daily_demand
+    demand_pivot = forecaster.df.pivot_table(index='date', columns='product_id', values='daily_demand')
+    # Compute correlation matrix
+    corr_matrix = demand_pivot.corr()
+    # Plotly heatmap
+    corr_fig = go.Figure(data=go.Heatmap(
+        z=corr_matrix.values,
+        x=corr_matrix.columns.astype(str),
+        y=corr_matrix.index.astype(str),
+        colorscale='RdBu',
+        zmin=-1,
+        zmax=1,
+        colorbar=dict(title='Correlation')
+    ))
+    corr_fig.update_layout(
+        title="Product Demand Correlation Heatmap",
+        xaxis_title="Product",
+        yaxis_title="Product",
+        height=500
+    )
+    st.plotly_chart(corr_fig, use_container_width=True)
+    # Show correlation table
+    st.markdown("<span style='color:gray;font-size:small;'>(Pandas DataFrame)</span>", unsafe_allow_html=True)
+    st.dataframe(corr_matrix.round(2), use_container_width=True)
 
     # Additional visualization: Days Until Stockout Gauges (10, 20, 30 days)
     st.subheader("Days Until Stockout Gauges")
