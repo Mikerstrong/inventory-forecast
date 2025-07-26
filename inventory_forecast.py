@@ -203,11 +203,17 @@ def create_stock_levels_chart(latest_data):
 def create_demand_trends_chart(df, selected_products):
     """Create daily demand trends chart."""
     fig = go.Figure()
-    
     colors = ['blue', 'green', 'red', 'purple', 'orange']
-    
+    # Collect spike info for all products
+    spike_rows = []
     for i, product in enumerate(selected_products):
         product_data = df[df['product_id'] == product]
+        # Spike detection: demand > mean + 2*std
+        mean = product_data['daily_demand'].mean()
+        std = product_data['daily_demand'].std()
+        spike_mask = product_data['daily_demand'] > (mean + 2 * std)
+        spikes = product_data[spike_mask]
+        # Add main demand line
         fig.add_trace(go.Scatter(
             x=product_data['date'],
             y=product_data['daily_demand'],
@@ -215,15 +221,30 @@ def create_demand_trends_chart(df, selected_products):
             name=f'Demand - {product}',
             line=dict(width=2, color=colors[i % len(colors)])
         ))
-    
+        # Overlay spike markers
+        if not spikes.empty:
+            fig.add_trace(go.Scatter(
+                x=spikes['date'],
+                y=spikes['daily_demand'],
+                mode='markers',
+                name=f'Spike - {product}',
+                marker=dict(color='red', size=12, symbol='star'),
+                showlegend=True
+            ))
+            for _, row in spikes.iterrows():
+                spike_rows.append({
+                    'product_id': row['product_id'],
+                    'product_name': row.get('product_name', str(product)),
+                    'date': row['date'],
+                    'demand': row['daily_demand']
+                })
     fig.update_layout(
-        title="Daily Demand Trends",
+        title="Daily Demand Trends (Spikes Highlighted)",
         xaxis_title="Date",
         yaxis_title="Daily Demand",
         height=400
     )
-    
-    return fig
+    return fig, spike_rows
 
 def create_forecast_chart(forecaster, selected_product):
     """Create forecast chart for selected product."""
@@ -630,8 +651,17 @@ def main():
     # Row 3: Demand trends
     if selected_products_trends:
         st.subheader("📊 Daily Demand Trends")
-        trends_fig = create_demand_trends_chart(forecaster.df, selected_products_trends)
+        trends_fig, spike_rows = create_demand_trends_chart(forecaster.df, selected_products_trends)
         st.plotly_chart(trends_fig, use_container_width=True)
+        # Show spike table and alert if any spikes detected
+        if spike_rows:
+            st.warning(f"Usage spikes detected: {len(spike_rows)} event(s)")
+            st.subheader("⚡ Usage Spike Events Table")
+            spike_df = pd.DataFrame(spike_rows)
+            spike_df['date'] = pd.to_datetime(spike_df['date']).dt.strftime('%Y-%m-%d')
+            st.dataframe(spike_df, use_container_width=True)
+        else:
+            st.info("No usage spikes detected in selected products.")
     
     # Row 4: Forecasting
     st.subheader("🔮 Demand Forecasting")
