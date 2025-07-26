@@ -453,20 +453,24 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
+        st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
         health_fig = create_inventory_health_gauge(latest_data)
         st.plotly_chart(health_fig, use_container_width=True)
     
     with col2:
+        st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
         status_fig = create_status_distribution_chart(latest_data)
         st.plotly_chart(status_fig, use_container_width=True)
     
     # Row 2: Stock levels
     st.subheader("📦 Current Stock Levels")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     stock_fig = create_stock_levels_chart(latest_data)
     st.plotly_chart(stock_fig, use_container_width=True)
 
     # Additional visualization 1: Stacked Bar Chart (Current Stock vs. Reorder Point)
     st.subheader("Current Stock vs. Reorder Point (Stacked Bar)")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     stacked_fig = go.Figure()
     stacked_fig.add_trace(go.Bar(
         x=latest_data['product_name'],
@@ -491,6 +495,7 @@ def main():
 
     # Additional visualization 2: Heatmap of Stock Status
     st.subheader("Stock Status Heatmap")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     heatmap_data = latest_data.copy()
     heatmap_data['status_code'] = heatmap_data['status'].map({
         'Critical': 0,
@@ -525,6 +530,7 @@ def main():
 
     # Additional visualization 3: Inventory Metrics Heatmap
     st.subheader("Inventory Metrics Heatmap")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     metrics = ['current_stock', 'reorder_point', 'max_stock']
     metrics_heatmap = latest_data.set_index('product_name')[metrics].T
     metrics_fig = go.Figure(data=go.Heatmap(
@@ -544,6 +550,7 @@ def main():
 
     # Additional visualization 4: Days Until Stockout Heatmap
     st.subheader("Days Until Stockout Heatmap")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     # Calculate days until stockout (simple estimate: current_stock / avg daily demand)
     days_heatmap_data = latest_data.copy()
     # Merge with average daily demand per product
@@ -570,6 +577,7 @@ def main():
 
     # Additional visualization: Days Until Stockout Horizontal Bar Chart
     st.subheader("Days Until Stockout by Product (Bar Chart)")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     bar_fig = px.bar(
         days_heatmap_data,
         x='days_until_stockout',
@@ -583,6 +591,7 @@ def main():
     st.plotly_chart(bar_fig, use_container_width=True)
 
     # Additional visualization: Days Until Stockout Risk Pie Chart
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     def risk_category(days):
         if days is None:
             return 'Unknown'
@@ -604,6 +613,7 @@ def main():
 
     # Additional visualization: Days Until Stockout Table with Conditional Formatting
     st.subheader("Days Until Stockout Table")
+    st.markdown("<span style='color:gray;font-size:small;'>(Pandas Styler)</span>", unsafe_allow_html=True)
     def color_days(val):
         if pd.isnull(val):
             return 'background-color: #cccccc'
@@ -618,6 +628,7 @@ def main():
 
     # Additional visualization: Days Until Stockout Scatter Plot
     st.subheader("Days Until Stockout vs. Current Stock (Scatter Plot)")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     scatter_fig = px.scatter(
         days_heatmap_data,
         x='current_stock',
@@ -630,6 +641,7 @@ def main():
 
     # Additional visualization: Days Until Stockout Pareto Chart
     st.subheader("Days Until Stockout Pareto Chart")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     # Sort products by ascending days until stockout
     pareto_data = days_heatmap_data[['product_name', 'days_until_stockout']].dropna().sort_values('days_until_stockout')
     pareto_fig = go.Figure()
@@ -651,12 +663,14 @@ def main():
     # Row 3: Demand trends
     if selected_products_trends:
         st.subheader("📊 Daily Demand Trends")
+        st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
         trends_fig, spike_rows = create_demand_trends_chart(forecaster.df, selected_products_trends)
         st.plotly_chart(trends_fig, use_container_width=True)
         # Show spike table and alert if any spikes detected
         if spike_rows:
             st.warning(f"Usage spikes detected: {len(spike_rows)} event(s)")
             st.subheader("⚡ Usage Spike Events Table")
+            st.markdown("<span style='color:gray;font-size:small;'>(Pandas DataFrame)</span>", unsafe_allow_html=True)
             spike_df = pd.DataFrame(spike_rows)
             spike_df['date'] = pd.to_datetime(spike_df['date']).dt.strftime('%Y-%m-%d')
             st.dataframe(spike_df, use_container_width=True)
@@ -665,19 +679,17 @@ def main():
     
     # Row 4: Forecasting
     st.subheader("🔮 Demand Forecasting")
-    
+    st.markdown("<span style='color:gray;font-size:small;'>(Prophet, Plotly)</span>", unsafe_allow_html=True)
     with st.spinner(f'Generating forecast for {selected_product_forecast}...'):
         forecaster.forecast_demand(selected_product_forecast, forecast_periods)
         forecast_fig = create_forecast_chart(forecaster, selected_product_forecast)
         
         if forecast_fig:
             st.plotly_chart(forecast_fig, use_container_width=True)
-            
             # Show forecast summary
             if selected_product_forecast in forecaster.forecasts:
                 forecast_data = forecaster.forecasts[selected_product_forecast]['forecast']
                 future_demand = forecast_data[forecast_data['ds'] > forecaster.df['date'].max()]
-                
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     avg_forecast = future_demand['yhat'].mean()
@@ -693,6 +705,7 @@ def main():
     
     # Additional visualization: Inventory Forecast Gauges
     st.subheader("Inventory Forecast Gauges")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     # Example gauges: Average, Min, Max forecasted demand for selected product
     if selected_product_forecast in forecaster.forecasts:
         forecast_data = forecaster.forecasts[selected_product_forecast]['forecast']
@@ -731,14 +744,13 @@ def main():
     
     # Product details table
     st.subheader("📋 Product Details")
-    
+    st.markdown("<span style='color:gray;font-size:small;'>(Pandas Styler)</span>", unsafe_allow_html=True)
     # Format the data for display
     display_data = latest_data.copy()
     display_data = display_data[['product_id', 'product_name', 'current_stock', 'reorder_point', 'max_stock', 'status']]
     display_data['current_stock'] = display_data['current_stock'].astype(int)
     display_data['reorder_point'] = display_data['reorder_point'].astype(int)
     display_data['max_stock'] = display_data['max_stock'].astype(int)
-    
     # Apply color coding
     def color_status(val):
         if val == 'Critical':
@@ -749,7 +761,6 @@ def main():
             return 'background-color: #cce6ff'
         else:
             return 'background-color: #ccffcc'
-    
     styled_df = display_data.style.applymap(color_status, subset=['status'])
     st.dataframe(styled_df, use_container_width=True)
     
@@ -767,6 +778,7 @@ def main():
 
     # Additional visualization: Days Until Stockout Gauges (10, 20, 30 days)
     st.subheader("Days Until Stockout Gauges")
+    st.markdown("<span style='color:gray;font-size:small;'>(Plotly)</span>", unsafe_allow_html=True)
     # Create bins for 10, 20, 30 days
     bins = [0, 10, 20, 30, np.inf]
     labels = ['<=10 days', '11-20 days', '21-30 days', '>30 days']
@@ -793,6 +805,7 @@ def main():
                 gauge_bins[label] = False
     # Show table if any gauge button was clicked
     if any(gauge_bins.values()):
+        st.markdown("<span style='color:gray;font-size:small;'>(Pandas DataFrame)</span>", unsafe_allow_html=True)
         selected_bin = [label for label, clicked in gauge_bins.items() if clicked][0]
         st.subheader(f"Parts with Days Until Stockout: {selected_bin}")
         filtered = days_heatmap_data[days_heatmap_data['stockout_bin'] == selected_bin]
